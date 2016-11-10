@@ -22,8 +22,12 @@ This wrapper application does mainly three things when you click on the desktop 
 
 This package provides the following elements:
   * `eos-google-chrome.py`: launcher script.
-  * `eos-google-chrome.desktop` + `eos-google-chrome.png`: icon and application information
-     according to the Desktop Entry Specification, to integrate with the shell.
+  * `eos-google-chrome.png`: icon to integrate with the desktop
+  * `google-chrome.desktop`: application information according to the Desktop Entry
+  Specification, to integrate with the shell. Note that we can't name it like the
+  icon (i.e. eos-google-chrome.desktop) since that way Google Chrome would not be
+  able to recognize itself when running as the default browser, which would end up
+  with Chromium asking to set itself as the default each time it was run.
 
 All this files will be installed, exceptionally, as part of the OSTree, so that the
 icon and the wrapper app are available on the desktop at any time, either to run
