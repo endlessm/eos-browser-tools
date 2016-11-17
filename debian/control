@@ -1,0 +1,22 @@
+Source: eos-google-chrome-helper
+Section: admin
+Priority: standard
+Maintainer: Mario Sanchez Prada <mario@endlessm.com>
+Build-Depends: debhelper (>= 9),
+	dh-autoreconf
+Standards-Version: 3.8.0
+Homepage: http://www.endlessm.com
+XCBS-EOS-AppId: eos-google-chrome-helper
+
+Package: eos-google-chrome-helper
+Architecture: any
+Depends: ${misc:Depends},
+	flatpak,
+	gir1.2-flatpak-1.0,
+	gir1.2-glib-2.0,
+	python3,
+	python3-gi
+Description: Google Chrome wrapper application
+ Small package to contain the logic responsible of
+ launching Google Chrome on Endless OS when installed,
+ or redirecting the user to the App Center otherwise.
