@@ -9,7 +9,7 @@ Homepage: http://www.endlessm.com
 XCBS-EOS-AppId: eos-google-chrome-helper
 
 Package: eos-google-chrome-helper
-Architecture: any
+Architecture: amd64
 Depends: ${misc:Depends},
 	flatpak,
 	gir1.2-flatpak-1.0,
