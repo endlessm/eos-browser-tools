@@ -7,22 +7,18 @@ downloading, installing and running Google Chrome on Endless OS.
 
 ## Detailed description
 
-This wrapper application does mainly three things when you click on the desktop icon:
+This wrapper application does mainly two things when you click on the desktop icon:
 
   * Integrates with the App Center (GNOME Software) so that it gets open on the page
     for Google Chrome when you click on the desktop icon and hasn't been installed yet.
 
   * If Google Chrome has been previously installed (using flatpak as a delivery mechanism),
-    the wrapper script launches chromium with its own sandbox (outside of flatpak.)
-
-  * Finally, the wrapper script keeps and monitors a process running inside the flatpak
-    sandbox for Chrome while the browser is running, to prevent uninstalling / updating
-    it while running, relying on flatpak's own locking mechanisms.
-
+    the wrapper script launches chromium with its own sandbox (outside of flatpak), by
+    calling a launcher script that is shipped along with the "headless" flatpak app.
 
 This package provides the following elements:
-  * `eos-google-chrome.py`: launcher script.
-  * `eos-google-chrome.png`: icon to integrate with the desktop
+  * `eos-google-chrome`: wrapper to either launch Chrome or the App Center.
+  * `eos-google-chrome.png`: icon to integrate with the desktop.
   * `google-chrome.desktop`: application information according to the Desktop Entry
   Specification, to integrate with the shell. Note that we can't name it like the
   icon (i.e. eos-google-chrome.desktop) since that way Google Chrome would not be
