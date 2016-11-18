@@ -25,6 +25,8 @@ import os
 import subprocess
 import sys
 
+import gi
+gi.require_version('Flatpak', '1.0')
 from gi.repository import Flatpak
 from gi.repository import GLib
 
@@ -34,23 +36,6 @@ def exit_with_error(message):
     sys.exit(1)
 
 
-def find_flatpak_ref(installation, ref_id, kind=Flatpak.RefKind.APP, branch=None, arch=None):
-    ref_found = None
-    try:
-        # We use get_current_installed_app() for apps since that will find
-        # the current dir for the app regardless of what the branch, while
-        # get_installed_ref() would force us to either specify it manually
-        # or to rely on the defaults when passing 'None', which is 'master'.
-        if kind == Flatpak.RefKind.APP and not branch:
-            ref_found = installation.get_current_installed_app(ref_id, None)
-        else:
-            ref_found = installation.get_installed_ref(kind, ref_id, arch, branch, None)
-    except GLib.Error as e:
-        logging.warning("Could not find Flatpak ref %s: %s", ref_id, repr(e))
-
-    return ref_found
-
-
 class GoogleChromeLauncher:
 
     FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
@@ -58,7 +43,6 @@ class GoogleChromeLauncher:
 
     def __init__(self, params):
         self._params = params
-
         try:
             self._installation = Flatpak.Installation.new_system()
         except GLib.Error as e:
@@ -67,45 +51,23 @@ class GoogleChromeLauncher:
         self._start()
 
     def _start(self):
-        app_info = self._get_chrome_app_info()
-        if app_info is not None:
-            logging.info("Local installation of Chrome found. Launching...")
-            self._run_chrome_app(app_info, self._params)
+        chrome_launcher = self._get_chrome_flatpak_launcher()
+        if chrome_launcher:
+            logging.info("Flatpak launcher for Chrome found. Launching...")
+            self._run_chrome_app(chrome_launcher, self._params)
         else:
-            logging.info("Could not find any local installation of Chrome. Opening App Center...")
+            logging.info("Could not find flatpak launcher for Chrome. Opening App Center...")
             self._run_app_center_for_chrome()
 
-    def _run_chrome_app(self, app_info, params):
-            chrome_bin_path = os.path.join(app_info['runtime_path'], 'files/opt/google/chrome/google-chrome')
-            os.environ['LD_LIBRARY_PATH'] = app_info['app_lib_path']
-
-            # We'll be running Chrome outside of flatpak's sandbox, meaning that flatpak
-            # has no clue about that and could choose to update/remove the files during an
-            # update of the application, which would be bad. To prevent that, we make sure
-            # a sandboxed process for that app is running in parallel to Chrome, keeping the
-            # sandbox 'alive' after the main Chrome process finishes, in which case we'll send
-            # a flag (end of line character) via the stdin FD to let it know it can die now.
+    def _run_chrome_app(self, chrome_launcher, params):
             try:
-                sandbox_process = subprocess.Popen(['flatpak', 'run',
-                                                    '--command=bash', self.FLATPAK_CHROME_APP_ID, '-c', 'read'],
-                                                   env=os.environ, stdin=subprocess.PIPE)
-                logging.info("Running monitor process inside the sandbox with PID %d", sandbox_process.pid)
+                launcher_process = subprocess.Popen([chrome_launcher] + params)
+                logging.info("Running Google Chrome launcher with PID %d", launcher_process.pid)
             except OSError as e:
-                exit_with_error("Could not run sandbox process: {}".format(repr(e)))
+                exit_with_error("Could not launch Google Chrome: {}".format(repr(e)))
 
-            try:
-                chrome_process = subprocess.Popen([chrome_bin_path] + params, env=os.environ)
-                logging.info("Launching Google Chrome with PID %d", chrome_process.pid)
-            except OSError as e:
-                exit_with_error("Could not run Google Chrome: {}".format(repr(e)))
-
-            chrome_process.wait()
-            logging.info("Google Chrome stopped. Finishing sandbox process...")
-
-            # Send an end of line byte string to make the read finish in
-            # the sandboxing process, effectively terminating the process.
-            sandbox_process.communicate(input=os.linesep.encode())
-            logging.info("Sandbox process stopped")
+            launcher_process.wait()
+            logging.info("Google Chrome launcher stopped")
 
     def _run_app_center_for_chrome(self):
         # We use the APP ID as the one for GNOME Software, to let it choose the best one.
@@ -123,7 +85,7 @@ class GoogleChromeLauncher:
             logging.warning("Could not determine default branch for remote %s", self.FLATPAK_REMOTE_EOS_APPS)
 
         default_branch = remote.get_default_branch()
-        if default_branch is not None:
+        if default_branch:
             chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(self.FLATPAK_REMOTE_EOS_APPS,
                                                                                     self.FLATPAK_CHROME_APP_ID,
                                                                                     default_branch)
@@ -132,65 +94,35 @@ class GoogleChromeLauncher:
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 
-    def _get_chrome_app_info(self):
-        app_lib_path = None
-        runtime_path = None
-
-        # Only supported for Intel 64bit
-        app_arch = Flatpak.get_default_arch()
-        if app_arch != 'x86_64':
-            exit_with_error("Found installation of unsupported architecture: {}".format(app_arch))
-
-        app = find_flatpak_ref(self._installation, self.FLATPAK_CHROME_APP_ID)
-        if not app:
+    def _get_chrome_flatpak_launcher(self):
+        app = None
+        try:
+            app = self._installation.get_current_installed_app(self.FLATPAK_CHROME_APP_ID, None)
+        except GLib.Error:
             logging.info("Chrome application is not installed")
             return None
 
         app_path = app.get_deploy_dir()
-        if app_path is not None and not os.path.exists(app_path):
+        if not app_path or not os.path.exists(app_path):
             exit_with_error("Could not find Chrome's application directory")
 
-        app_lib_path = os.path.join(app_path, 'files/lib/x86_64-linux-gnu')
-        if not os.path.exists(app_lib_path):
-            exit_with_error("Could not find bundled libraries for Chrome")
+        app_launcher_path = os.path.join(app_path, 'files', 'bin', 'eos-google-chrome-app')
+        if not os.path.exists(app_launcher_path):
+            exit_with_error("Could not find flatpak launcher for Google Chrome")
 
-        if app_path and not app_lib_path:
-            exit_with_error("Chrome's installation directory found, but not bundled libraries")
-
-        runtime_extension_id = '{}.external'.format(self.FLATPAK_CHROME_APP_ID)
-        try:
-            metadata_file = GLib.KeyFile()
-            metadata_file.load_from_file(os.path.join(app_path, 'metadata'), GLib.KeyFileFlags.NONE)
-
-            keyfile_group = 'Extension {}'.format(runtime_extension_id)
-            if not metadata_file.has_group(keyfile_group):
-                exit_with_error("Flatpak metadata not referencing external runtime")
-
-            runtime_version = metadata_file.get_string(keyfile_group, 'version')
-            if not runtime_version:
-                exit_with_error("Could not determine version of external runtime")
-
-        except GLib.Error:
-            exit_with_error("Could not read flatpak's metadata for Chrome")
-
-        runtime = find_flatpak_ref(self._installation, runtime_extension_id,
-                                 Flatpak.RefKind.RUNTIME, runtime_version, app_arch)
-        if runtime:
-            runtime_path = runtime.get_deploy_dir()
-            if not runtime_path or not os.path.exists(runtime_path):
-                exit_with_error("Could not find Chrome's external runtime directory")
-
-        # Both application and runtime directories found if reached.
-        app_info = {'app_lib_path': app_lib_path, 'runtime_path': runtime_path}
-        logging.info("Found information for Chrome: %s", repr(app_info))
-        return app_info
+        logging.info("Found flatpak launcher for Google Chrome: %s", repr(app_launcher_path))
+        return app_launcher_path
 
 
 if __name__ == '__main__':
+    # Google Chrome is only available for Intel 64-bit
+    app_arch = Flatpak.get_default_arch()
+    if app_arch != 'x86_64':
+        exit_with_error("Found installation of unsupported architecture: {}".format(app_arch))
+
     cmdline_args = sys.argv[1:]
     if len(sys.argv) > 1 and sys.argv[1] == '--debug':
         logging.basicConfig(level=logging.INFO)
-        cmdline_args = sys.argv[2:]
 
     GoogleChromeLauncher(cmdline_args)
     sys.exit(0)
