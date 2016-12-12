@@ -1,0 +1,243 @@
+#!/usr/bin/python3
+#
+# eos-google-chrome-installer: helper script to install Google Chrome
+#
+# Copyright (C) 2016 Endless Mobile, Inc.
+# Authors:
+#  Michal Rostecki <michal@kinvolk.io>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+import argparse
+import logging
+import os
+import pathlib
+import subprocess
+import sys
+
+import dbus
+from dbus.mainloop import glib as dbus_glib
+import gi
+gi.require_version('Flatpak', '1.0')
+from gi.repository import Flatpak
+from gi.repository import Gio
+from gi.repository import GLib
+gi.require_version('NetworkManager', '1.0')
+from gi.repository import NetworkManager
+gi.require_version('NMClient', '1.0')
+from gi.repository import NMClient
+
+
+def exit_with_error(*args):
+    logging.error(*args)
+    sys.exit(1)
+
+
+class GoogleChromeInstaller:
+
+    GSETTINGS_SCHEMA = "com.endlessm.ChromeInitialSetup"
+
+    FLATPAK_CHROME_APP_ID = "com.google.Chrome"
+    FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
+
+    def __init__(self, initial_setup):
+        self._initial_setup = initial_setup
+
+        if self._initial_setup and not self._check_gsetting():
+            logging.info("Google Chrome installation is disabled")
+            sys.exit(0)
+
+        try:
+            self._installation = Flatpak.Installation.new_system()
+        except GLib.Error as e:
+            exit_with_error("Couldn't not find current system installation: %r", e)
+
+        if self._check_chrome_flatpak_launcher():
+            logging.info("Google Chrome is already installed")
+            return
+
+        logging.info("Could not find flatpak launcher for Chrome.")
+        if initial_setup:
+            self._wait_for_network_connectivity()
+        logging.info("Opening App Center...")
+        self._run_app_center_for_chrome()
+
+    def _check_gsetting(self):
+        schema_source = Gio.SettingsSchemaSource.get_default()
+        if not schema_source.lookup(self.GSETTINGS_SCHEMA, True):
+            return False
+
+        schema = Gio.Settings(self.GSETTINGS_SCHEMA)
+        return schema.get_boolean("enabled")
+
+    def _check_chrome_flatpak_launcher(self):
+        try:
+            self._installation.get_current_installed_app(self.FLATPAK_CHROME_APP_ID, None)
+        except GLib.Error as e:
+            logging.info("Chrome application is not installed")
+            return False
+        return True
+
+    def _is_connected_state(self):
+        nm_client = NMClient.Client.new()
+        connectivity = nm_client.get_connectivity()
+        state = nm_client.get_state()
+
+        return connectivity == NetworkManager.ConnectivityState.FULL and state == NetworkManager.State.CONNECTED_GLOBAL
+
+    def _wait_for_network_connectivity(self):
+        logging.info("Checking network connectivity...")
+        if self._is_connected_state():
+            logging.info("Network connected")
+            return
+
+        logging.info("Not connected to any network, wait for connection")
+
+        loop = GLib.MainLoop()
+
+        def handler(*args):
+            if len(args) < 1:
+                return
+            state = args[0]
+            if not isinstance(state, dbus.Dictionary):
+                return
+            if state.get("Connectivity", None) != NetworkManager.ConnectivityState.FULL:
+                logging.info("Not connected to the internet, still waiting")
+                return
+            if state.get("State", None) != NetworkManager.State.CONNECTED_GLOBAL:
+                logging.info("Not connected to the network, still waiting")
+                return
+
+            logging.info("Connected to the network and the internet")
+            loop.quit()
+
+        dbus_glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SystemBus()
+        bus.add_signal_receiver(handler, dbus_interface="org.freedesktop.NetworkManager",
+                                signal_name="PropertiesChanged")
+
+        loop.run()
+
+    def _wait_for_installation(self):
+        loop = GLib.MainLoop()
+
+        def handler(*args):
+            for arg in args[0]:
+                if arg == dbus.String("google-chrome.desktop"):
+                    loop.quit()
+                    return
+            exit_with_error("Gnome Software installed some new application but not Google Chrome. "
+                            "Most probably, user decided to install something else. Quitting...")
+
+        dbus_glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
+        bus.add_signal_receiver(handler, dbus_interface="org.gnome.Shell.AppStore",
+                                signal_name="ApplicationsChanged")
+
+        loop.run()
+
+    def _set_as_default_browser(self):
+        mimetypes = ["text/html",
+                     "x-scheme-handler/http",
+                     "x-scheme-handler/https",
+                     "x-scheme-handler/about"]
+        for mimetype in mimetypes:
+            try:
+                subprocess.Popen(["xdg-mime", "default", "google-chrome.desktop", mimetype])
+            except OSError:
+                exit_with_error("Couldn't start xdg-mime. Are xdg-utils installed?")
+        try:
+            subprocess.Popen(["xdg-settings", "set", "default-web-browser", "google-chrome.desktop"])
+        except OSError:
+            exit_with_error("Couldn't start xdg-settings. Are xdg-utils installed?")
+
+    def _touch_done_file(self):
+        chrome_setup_done_path = pathlib.Path(os.path.expanduser("~/.config/google-chrome-initial-setup-done"))
+        if not chrome_setup_done_path.exists():
+            chrome_setup_done_path.touch()
+
+    def _disable_gsetting(self):
+        schema_source = Gio.SettingsSchemaSource.get_default()
+        if not schema_source.lookup(self.GSETTINGS_SCHEMA, True):
+            return False
+
+        schema = Gio.Settings(self.GSETTINGS_SCHEMA)
+        schema.set_boolean("enabled", False)
+
+    def _post_install_chrome(self):
+        self._set_as_default_browser()
+        self._touch_done_file()
+        self._disable_gsetting()
+
+    def _run_app_center_for_chrome(self):
+        # We use the APP ID as the one for GNOME Software, to let it choose the best one.
+        chrome_app_center_id = self.FLATPAK_CHROME_APP_ID
+
+        # FIXME: Ideally, we should be able to pass 'com.google.Chrome' to GNOME Software
+        # and it would do the right thing by opening the page for the app's branch matching
+        # the default branch for the apps' source remote. Unfortunately, this is not the case
+        # at the moment and fixing it is non-trivial, so we'll construct the full unique ID
+        # that GNOME Software expects, right from here, based on the remote's metadata.
+        default_branch = None
+        try:
+            remote = self._installation.get_remote_by_name(self.FLATPAK_REMOTE_EOS_APPS)
+        except GLib.Error as e:
+            logging.warning("Could not determine default branch for remote %s", self.FLATPAK_REMOTE_EOS_APPS)
+
+        default_branch = remote.get_default_branch()
+        if default_branch:
+            chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(self.FLATPAK_REMOTE_EOS_APPS,
+                                                                                    self.FLATPAK_CHROME_APP_ID,
+                                                                                    default_branch)
+        if self._initial_setup:
+            app_center_argv = ['gnome-software', '--install', chrome_app_center_id, '--interaction', 'none']
+        else:
+            app_center_argv = ['gnome-software', '--details={}'.format(chrome_app_center_id)]
+            return
+
+        try:
+            subprocess.Popen(app_center_argv)
+        except OSError as e:
+            exit_with_error("Could not launch Chrome: {}".format(repr(e)))
+
+        self._wait_for_installation()
+        if not self._check_chrome_flatpak_launcher():
+            exit_with_error("Chrome isn't installed - something went wrong in GNOME Software")
+        logging.info("Chrome successfully installed")
+
+        self._post_install_chrome()
+        logging.info("Post-installation configuration done")
+
+
+def main():
+    app_arch = Flatpak.get_default_arch()
+    if app_arch != 'x86_64':
+        exit_with_error("Found installation of unsupported architecture: %s", app_arch)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", dest="debug", action="store_true")
+    parser.add_argument("--initial-setup", dest="initial_setup", action="store_true")
+
+    parsed_args = parser.parse_args()
+
+    if parsed_args.debug:
+        logging.basicConfig(level=logging.INFO)
+
+    GoogleChromeInstaller(parsed_args.initial_setup)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

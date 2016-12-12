@@ -7,6 +7,9 @@ AM_INIT_AUTOMAKE([1.11 -Wno-portability foreign no-define tar-ustar no-dist-gzip
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
+PKG_CHECK_MODULES([glib], [glib-2.0])
+GLIB_GSETTINGS
+
 AC_CONFIG_FILES([
 Makefile
 data/Makefile

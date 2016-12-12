@@ -56,8 +56,8 @@ class GoogleChromeLauncher:
             logging.info("Flatpak launcher for Chrome found. Launching...")
             self._run_chrome_app(chrome_launcher, self._params)
         else:
-            logging.info("Could not find flatpak launcher for Chrome. Opening App Center...")
-            self._run_app_center_for_chrome()
+            logging.info("Could not find flatpak launcher for Chrome. Running installation script...")
+            self._install_chrome()
 
     def _run_chrome_app(self, chrome_launcher, params):
             try:
@@ -69,28 +69,9 @@ class GoogleChromeLauncher:
             launcher_process.wait()
             logging.info("Google Chrome launcher stopped")
 
-    def _run_app_center_for_chrome(self):
-        # We use the APP ID as the one for GNOME Software, to let it choose the best one.
-        chrome_app_center_id = self.FLATPAK_CHROME_APP_ID
-
-        # FIXME: Ideally, we should be able to pass 'com.google.Chrome' to GNOME Software
-        # and it would do the right thing by opening the page for the app's branch matching
-        # the default branch for the apps' source remote. Unfortunately, this is not the case
-        # at the moment and fixing it is non-trivial, so we'll construct the full unique ID
-        # that GNOME Software expects, right from here, based on the remote's metadata.
-        default_branch = None
+    def _install_chrome(self):
         try:
-            remote = self._installation.get_remote_by_name(self.FLATPAK_REMOTE_EOS_APPS)
-        except GLib.Error as e:
-            logging.warning("Could not determine default branch for remote %s", self.FLATPAK_REMOTE_EOS_APPS)
-
-        default_branch = remote.get_default_branch()
-        if default_branch:
-            chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(self.FLATPAK_REMOTE_EOS_APPS,
-                                                                                    self.FLATPAK_CHROME_APP_ID,
-                                                                                    default_branch)
-        try:
-            subprocess.Popen(['gnome-software', '--details={}'.format(chrome_app_center_id)])
+            subprocess.Popen(['/usr/libexec/eos-google-chrome-installer'])
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 
