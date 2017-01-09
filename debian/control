@@ -3,7 +3,8 @@ Section: admin
 Priority: standard
 Maintainer: Mario Sanchez Prada <mario@endlessm.com>
 Build-Depends: debhelper (>= 9),
-	dh-autoreconf
+	dh-autoreconf,
+	libglib2.0-dev
 Standards-Version: 3.8.0
 Homepage: http://www.endlessm.com
 
