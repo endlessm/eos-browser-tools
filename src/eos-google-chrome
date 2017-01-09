@@ -25,6 +25,8 @@ import os
 import subprocess
 import sys
 
+sys.path.append("/usr/share/eos-google-chrome-helper")
+import config
 import gi
 gi.require_version('Flatpak', '1.0')
 from gi.repository import Flatpak
@@ -71,7 +73,7 @@ class GoogleChromeLauncher:
 
     def _install_chrome(self):
         try:
-            subprocess.Popen(['/usr/libexec/eos-google-chrome-installer'])
+            subprocess.Popen(['/{}/eos-google-chrome-installer'.format(config.pkglibexecdir)])
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 
