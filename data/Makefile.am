@@ -23,4 +23,9 @@ EXTRA_DIST = \
 	$(icon64_DATA) \
 	$(autostart_DATA) \
 	$(gsettings_SCHEMAS) \
+	com.endlessm.GoogleChromeInitialSetup.desktop.in \
+	$(NULL)
+
+CLEANFILES = \
+	com.endlessm.GoogleChromeInitialSetup.desktop \
 	$(NULL)
