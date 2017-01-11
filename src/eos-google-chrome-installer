@@ -205,12 +205,14 @@ class GoogleChromeInstaller:
             app_center_argv = ['gnome-software', '--install', chrome_app_center_id, '--interaction', 'none']
         else:
             app_center_argv = ['gnome-software', '--details={}'.format(chrome_app_center_id)]
-            return
 
         try:
             subprocess.Popen(app_center_argv)
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
+
+        if not self._initial_setup:
+            return
 
         self._wait_for_installation()
         if not self._check_chrome_flatpak_launcher():
