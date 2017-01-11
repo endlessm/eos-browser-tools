@@ -47,7 +47,7 @@ def exit_with_error(*args):
 
 class GoogleChromeInstaller:
 
-    GSETTINGS_SCHEMA = "com.endlessm.ChromeInitialSetup"
+    GSETTINGS_SCHEMA = "com.endlessm.GoogleChromeInitialSetup"
 
     FLATPAK_CHROME_APP_ID = "com.google.Chrome"
     FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
