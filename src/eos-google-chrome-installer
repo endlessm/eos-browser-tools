@@ -22,10 +22,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import argparse
+import config
 import configparser
 import logging
 import os
-import pathlib
 import subprocess
 import sys
 
@@ -50,6 +50,9 @@ def exit_with_error(*args):
 class GoogleChromeInstaller:
 
     CONFIG_FILE = '/etc/eos-google-chrome-helper/eos-google-chrome-helper.conf'
+    STAMP_FILE_INITIAL_SETUP_DONE = '/var/lib/eos-google-chrome-helper/initial-setup-done'
+
+    LEGACY_USER_CONFIG_STAMP_FILE = '~/.config/google-chrome-initial-setup-done'
 
     FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
     FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
@@ -57,9 +60,14 @@ class GoogleChromeInstaller:
     def __init__(self, initial_setup):
         self._initial_setup = initial_setup
 
-        if self._initial_setup and not self._automatic_install_enabled():
-            logging.info("Google Chrome installation is disabled")
-            sys.exit(0)
+        if self._initial_setup:
+            if not self._automatic_install_enabled():
+                logging.info("Google Chrome installation is disabled")
+                sys.exit(0)
+
+            if self._initial_setup_already_done():
+                logging.info("Google Chrome automatic installation already done")
+                sys.exit(0)
 
         try:
             self._installation = Flatpak.Installation.new_system()
@@ -68,6 +76,7 @@ class GoogleChromeInstaller:
 
         if self._check_chrome_flatpak_launcher():
             logging.info("Google Chrome is already installed")
+            self._touch_done_file()
             return
 
         logging.info("Could not find flatpak launcher for Chrome.")
@@ -75,6 +84,19 @@ class GoogleChromeInstaller:
             self._wait_for_network_connectivity()
         logging.info("Opening App Center...")
         self._run_app_center_for_chrome()
+
+    def _initial_setup_already_done(self):
+        if os.path.exists(self.STAMP_FILE_INITIAL_SETUP_DONE):
+            return True
+
+        legacy_stamp_file = os.path.expanduser(self.LEGACY_USER_CONFIG_STAMP_FILE)
+        if os.path.exists(legacy_stamp_file):
+            # This is a legacy scenario, so we touch the system-wide file and
+            # remove the old one, so is not considered on the next log-in.
+            self._touch_done_file()
+            return True
+
+        return False
 
     def _automatic_install_enabled(self):
         if not os.path.exists(self.CONFIG_FILE):
@@ -185,9 +207,13 @@ class GoogleChromeInstaller:
             exit_with_error("Couldn't start xdg-settings. Are xdg-utils installed?")
 
     def _touch_done_file(self):
-        chrome_setup_done_path = pathlib.Path(os.path.expanduser('~/.config/google-chrome-initial-setup-done'))
-        if not chrome_setup_done_path.exists():
-            chrome_setup_done_path.touch()
+        # The system-wide stamp file touched by this helper makes sure that
+        # the automatic installation won't ever be performed for other users.
+        system_helper_cmd = os.path.join(config.pkglibexecdir, 'eos-google-chrome-system-helper')
+        try:
+            subprocess.Popen(['pkexec', system_helper_cmd])
+        except OSError as e:
+            exit_with_error("Couldn't run {}: {}".format(system_helper_cmd, str(e)))
 
     def _post_install_chrome(self):
         self._set_as_default_browser()

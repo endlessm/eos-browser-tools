@@ -3,5 +3,4 @@ Name=Google Chrome Initial Setup
 Exec=@pkglibexecdir@/eos-google-chrome-installer --initial-setup
 Type=Application
 NoDisplay=true
-AutostartCondition=unless-exists google-chrome-initial-setup-done
 X-GNOME-Autostart-enabled=true
