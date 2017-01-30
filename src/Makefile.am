@@ -1,6 +1,9 @@
 dist_bin_SCRIPTS = eos-google-chrome
 
-dist_pkglibexec_SCRIPTS = eos-google-chrome-installer
+dist_pkglibexec_SCRIPTS = \
+	eos-google-chrome-installer \
+	eos-google-chrome-system-helper \
+	$(NULL)
 
 nobase_pkgdata_DATA = \
         config.py \
