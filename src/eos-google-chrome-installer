@@ -2,9 +2,10 @@
 #
 # eos-google-chrome-installer: helper script to install Google Chrome
 #
-# Copyright (C) 2016 Endless Mobile, Inc.
+# Copyright (C) 2016, 2017 Endless Mobile, Inc.
 # Authors:
 #  Michal Rostecki <michal@kinvolk.io>
+#  Mario Sanchez Prada <mario@endlessm.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import argparse
+import configparser
 import logging
 import os
 import pathlib
@@ -47,7 +49,7 @@ def exit_with_error(*args):
 
 class GoogleChromeInstaller:
 
-    GSETTINGS_SCHEMA = 'com.endlessm.GoogleChromeInitialSetup'
+    CONFIG_FILE = '/etc/eos-google-chrome-helper/eos-google-chrome-helper.conf'
 
     FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
     FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
@@ -55,7 +57,7 @@ class GoogleChromeInstaller:
     def __init__(self, initial_setup):
         self._initial_setup = initial_setup
 
-        if self._initial_setup and not self._check_gsetting():
+        if self._initial_setup and not self._automatic_install_enabled():
             logging.info("Google Chrome installation is disabled")
             sys.exit(0)
 
@@ -74,13 +76,32 @@ class GoogleChromeInstaller:
         logging.info("Opening App Center...")
         self._run_app_center_for_chrome()
 
-    def _check_gsetting(self):
-        schema_source = Gio.SettingsSchemaSource.get_default()
-        if not schema_source.lookup(self.GSETTINGS_SCHEMA, True):
+    def _automatic_install_enabled(self):
+        if not os.path.exists(self.CONFIG_FILE):
+            logging.warning("Could not find configuration file at {}"
+                            .format(self.CONFIG_FILE))
             return False
 
-        schema = Gio.Settings(self.GSETTINGS_SCHEMA)
-        return schema.get_boolean('enabled')
+        is_enabled = False
+        with open(self.CONFIG_FILE, 'r') as config_file:
+            helper_config = configparser.ConfigParser(allow_no_value=True)
+            try:
+                helper_config.read_file(config_file)
+                logging.info("Read contents from configuration file at {}\n"
+                             .format(self.CONFIG_FILE))
+            except configparser.ParsingError as e:
+                logging.error("Error parsing contents from configuration file at {}: {}"
+                             .format(self.CONFIG_FILE, str(e)))
+                return False
+
+            try:
+                is_enabled = helper_config.getboolean('Initial Setup', 'AutomaticInstallEnabled')
+                logging.info("AutomaticInstallEnabled = {}".format(str(is_enabled)))
+            except configparser.NoOptionError:
+                logging.warning("AutomaticInstallEnabled key not found in {}".format(self.CONFIG_FILE))
+                return False
+
+        return is_enabled
 
     def _check_chrome_flatpak_launcher(self):
         try:
@@ -168,18 +189,9 @@ class GoogleChromeInstaller:
         if not chrome_setup_done_path.exists():
             chrome_setup_done_path.touch()
 
-    def _disable_gsetting(self):
-        schema_source = Gio.SettingsSchemaSource.get_default()
-        if not schema_source.lookup(self.GSETTINGS_SCHEMA, True):
-            return False
-
-        schema = Gio.Settings(self.GSETTINGS_SCHEMA)
-        schema.set_boolean('enabled', False)
-
     def _post_install_chrome(self):
         self._set_as_default_browser()
         self._touch_done_file()
-        self._disable_gsetting()
 
     def _run_app_center_for_chrome(self):
         # We use the APP ID as the one for GNOME Software, to let it choose the best one.

@@ -26,16 +26,11 @@ do_edit = sed -e 's|@pkglibexecdir[@]|$(pkglibexecdir)|g'
 %.desktop: %.desktop.in Makefile
 	$(AM_V_GEN) $(do_edit) $<> $@
 
-gsettings_SCHEMAS = com.endlessm.GoogleChromeInitialSetup.gschema.xml
-
-@GSETTINGS_RULES@
-
 EXTRA_DIST = \
 	$(appdata_DATA) \
 	$(desktop_DATA) \
 	$(icon64_DATA) \
 	$(autostart_in_files) \
-	$(gsettings_SCHEMAS) \
 	$(polkit_policy_in_files) \
 	$(config_DATA) \
 	$(NULL)
