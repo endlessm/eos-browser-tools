@@ -174,20 +174,18 @@ class GoogleChromeInstaller:
         loop.run()
 
     def _wait_for_installation(self):
+        def _installation_finished(monitor, file_, other_file, event_type):
+            if event_type != Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+                return
+
+            if self._check_chrome_flatpak_launcher():
+                logging.info("{} has been installed".format(self.FLATPAK_CHROME_APP_ID))
+                loop.quit()
+
         loop = GLib.MainLoop()
 
-        def handler(*args):
-            for arg in args[0]:
-                if arg == dbus.String('google-chrome.desktop'):
-                    loop.quit()
-                    return
-            exit_with_error("Gnome Software installed some new application but not Google Chrome. "
-                            "Most probably, user decided to install something else. Quitting...")
-
-        dbus_glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-        bus.add_signal_receiver(handler, dbus_interface='org.gnome.Shell.AppStore',
-                                signal_name='ApplicationsChanged')
+        monitor = self._installation.create_monitor(None)
+        monitor.connect('changed', _installation_finished)
 
         loop.run()
 
