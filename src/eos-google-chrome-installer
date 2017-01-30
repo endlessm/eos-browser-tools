@@ -47,9 +47,9 @@ def exit_with_error(*args):
 
 class GoogleChromeInstaller:
 
-    GSETTINGS_SCHEMA = "com.endlessm.GoogleChromeInitialSetup"
+    GSETTINGS_SCHEMA = 'com.endlessm.GoogleChromeInitialSetup'
 
-    FLATPAK_CHROME_APP_ID = "com.google.Chrome"
+    FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
     FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
 
     def __init__(self, initial_setup):
@@ -80,7 +80,7 @@ class GoogleChromeInstaller:
             return False
 
         schema = Gio.Settings(self.GSETTINGS_SCHEMA)
-        return schema.get_boolean("enabled")
+        return schema.get_boolean('enabled')
 
     def _check_chrome_flatpak_launcher(self):
         try:
@@ -113,10 +113,10 @@ class GoogleChromeInstaller:
             state = args[0]
             if not isinstance(state, dbus.Dictionary):
                 return
-            if state.get("Connectivity", None) != NetworkManager.ConnectivityState.FULL:
+            if state.get('Connectivity', None) != NetworkManager.ConnectivityState.FULL:
                 logging.info("Not connected to the internet, still waiting")
                 return
-            if state.get("State", None) != NetworkManager.State.CONNECTED_GLOBAL:
+            if state.get('State', None) != NetworkManager.State.CONNECTED_GLOBAL:
                 logging.info("Not connected to the network, still waiting")
                 return
 
@@ -125,8 +125,8 @@ class GoogleChromeInstaller:
 
         dbus_glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
-        bus.add_signal_receiver(handler, dbus_interface="org.freedesktop.NetworkManager",
-                                signal_name="PropertiesChanged")
+        bus.add_signal_receiver(handler, dbus_interface='org.freedesktop.NetworkManager',
+                                signal_name='PropertiesChanged')
 
         loop.run()
 
@@ -135,7 +135,7 @@ class GoogleChromeInstaller:
 
         def handler(*args):
             for arg in args[0]:
-                if arg == dbus.String("google-chrome.desktop"):
+                if arg == dbus.String('google-chrome.desktop'):
                     loop.quit()
                     return
             exit_with_error("Gnome Software installed some new application but not Google Chrome. "
@@ -143,28 +143,28 @@ class GoogleChromeInstaller:
 
         dbus_glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SessionBus()
-        bus.add_signal_receiver(handler, dbus_interface="org.gnome.Shell.AppStore",
-                                signal_name="ApplicationsChanged")
+        bus.add_signal_receiver(handler, dbus_interface='org.gnome.Shell.AppStore',
+                                signal_name='ApplicationsChanged')
 
         loop.run()
 
     def _set_as_default_browser(self):
-        mimetypes = ["text/html",
-                     "x-scheme-handler/http",
-                     "x-scheme-handler/https",
-                     "x-scheme-handler/about"]
+        mimetypes = ['text/html',
+                     'x-scheme-handler/http',
+                     'x-scheme-handler/https',
+                     'x-scheme-handler/about']
         for mimetype in mimetypes:
             try:
-                subprocess.Popen(["xdg-mime", "default", "google-chrome.desktop", mimetype])
+                subprocess.Popen(['xdg-mime', 'default', 'google-chrome.desktop', mimetype])
             except OSError:
                 exit_with_error("Couldn't start xdg-mime. Are xdg-utils installed?")
         try:
-            subprocess.Popen(["xdg-settings", "set", "default-web-browser", "google-chrome.desktop"])
+            subprocess.Popen(['xdg-settings', 'set', 'default-web-browser', 'google-chrome.desktop'])
         except OSError:
             exit_with_error("Couldn't start xdg-settings. Are xdg-utils installed?")
 
     def _touch_done_file(self):
-        chrome_setup_done_path = pathlib.Path(os.path.expanduser("~/.config/google-chrome-initial-setup-done"))
+        chrome_setup_done_path = pathlib.Path(os.path.expanduser('~/.config/google-chrome-initial-setup-done'))
         if not chrome_setup_done_path.exists():
             chrome_setup_done_path.touch()
 
@@ -174,7 +174,7 @@ class GoogleChromeInstaller:
             return False
 
         schema = Gio.Settings(self.GSETTINGS_SCHEMA)
-        schema.set_boolean("enabled", False)
+        schema.set_boolean('enabled', False)
 
     def _post_install_chrome(self):
         self._set_as_default_browser()
@@ -229,8 +229,8 @@ def main():
         exit_with_error("Found installation of unsupported architecture: %s", app_arch)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", dest="debug", action="store_true")
-    parser.add_argument("--initial-setup", dest="initial_setup", action="store_true")
+    parser.add_argument('--debug', dest='debug', action='store_true')
+    parser.add_argument('--initial-setup', dest='initial_setup', action='store_true')
 
     parsed_args = parser.parse_args()
 
@@ -241,5 +241,5 @@ def main():
     sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
