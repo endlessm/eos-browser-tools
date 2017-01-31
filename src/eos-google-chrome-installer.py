@@ -65,9 +65,10 @@ class GoogleChromeInstaller:
             return
 
         logging.info("Could not find flatpak launcher for Chrome.")
-        if initial_setup:
+
+        if self._initial_setup:
             self._wait_for_network_connectivity()
-        logging.info("Opening App Center...")
+
         self._run_app_center_for_chrome()
 
     def _initial_setup_already_done(self):
@@ -189,49 +190,59 @@ class GoogleChromeInstaller:
             exit_with_error("Couldn't run {}: {}".format(system_helper_cmd, str(e)))
 
     def _post_install_chrome(self):
+        self._wait_for_installation()
+
+        if not self._check_chrome_flatpak_launcher():
+            exit_with_error("Chrome isn't installed - something went wrong in GNOME Software")
+
+        logging.info("Chrome successfully installed")
+
         self._set_as_default_browser()
         self._touch_done_file()
 
-    def _run_app_center_for_chrome(self):
-        # We use the APP ID as the one for GNOME Software, to let it choose the best one.
+        logging.info("Post-installation configuration done")
+
+
+    def _get_unique_id(self):
         chrome_app_center_id = config.FLATPAK_CHROME_APP_ID
 
-        # FIXME: Ideally, we should be able to pass 'com.google.Chrome' to GNOME Software
-        # and it would do the right thing by opening the page for the app's branch matching
-        # the default branch for the apps' source remote. Unfortunately, this is not the case
-        # at the moment and fixing it is non-trivial, so we'll construct the full unique ID
-        # that GNOME Software expects, right from here, based on the remote's metadata.
         default_branch = None
         try:
             remote = self._installation.get_remote_by_name(config.FLATPAK_REMOTE_EOS_APPS)
         except GLib.Error as e:
-            logging.warning("Could not determine default branch for remote %s", config.FLATPAK_REMOTE_EOS_APPS)
+            logging.warning("Could not find flatpak remote {}: {}"
+                            .format(config.FLATPAK_REMOTE_EOS_APPS, str(e)))
 
+        # Get the default branch now to construct the full unique ID GNOME Software expects.
         default_branch = remote.get_default_branch()
         if default_branch:
             chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(config.FLATPAK_REMOTE_EOS_APPS,
                                                                                     config.FLATPAK_CHROME_APP_ID,
                                                                                     default_branch)
+        return chrome_app_center_id
+
+    def _run_app_center_for_chrome(self):
+        # FIXME: Ideally, we should be able to pass 'com.google.Chrome' to GNOME Software
+        # and it would do the right thing by opening the page for the app's branch matching
+        # the default branch for the apps' source remote. Unfortunately, this is not the case
+        # at the moment and fixing it is non-trivial, so we'll construct the full unique ID
+        # that GNOME Software expects, right from here, based on the remote's metadata.
+        unique_id = self._get_unique_id()
+
+        logging.info("Opening App Center...")
         if self._initial_setup:
-            app_center_argv = ['gnome-software', '--install', chrome_app_center_id, '--interaction', 'none']
+            app_center_argv = ['gnome-software', '--install', unique_id, '--interaction', 'none']
         else:
-            app_center_argv = ['gnome-software', '--details={}'.format(chrome_app_center_id)]
+            app_center_argv = ['gnome-software', '--details={}'.format(unique_id)]
 
         try:
             subprocess.Popen(app_center_argv)
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 
-        if not self._initial_setup:
-            return
-
-        self._wait_for_installation()
-        if not self._check_chrome_flatpak_launcher():
-            exit_with_error("Chrome isn't installed - something went wrong in GNOME Software")
-        logging.info("Chrome successfully installed")
-
-        self._post_install_chrome()
-        logging.info("Post-installation configuration done")
+        # There's a post-install procedure for automatic installations.
+        if self._initial_setup:
+            self._post_install_chrome()
 
 
 def main():
