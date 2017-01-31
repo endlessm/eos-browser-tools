@@ -172,21 +172,23 @@ class GoogleChromeInstaller:
                      'x-scheme-handler/about']
         for mimetype in mimetypes:
             try:
-                subprocess.Popen(['xdg-mime', 'default', 'google-chrome.desktop', mimetype])
-            except OSError:
-                exit_with_error("Couldn't start xdg-mime. Are xdg-utils installed?")
+                subprocess.check_call('xdg-mime default google-chrome.desktop {}'.format(mimetype),
+                                      shell=True)
+            except subprocess.CalledProcessError as e:
+                exit_with_error("Couldn't start xdg-mime: {}".format(str(e)))
         try:
-            subprocess.Popen(['xdg-settings', 'set', 'default-web-browser', 'google-chrome.desktop'])
-        except OSError:
-            exit_with_error("Couldn't start xdg-settings. Are xdg-utils installed?")
+            subprocess.check_call('xdg-settings set default-web-browser google-chrome.desktop',
+                                  shell=True)
+        except subprocess.CalledProcessError as e:
+            exit_with_error("Couldn't start xdg-settings: {}".format(str(e)))
 
     def _touch_done_file(self):
         # The system-wide stamp file touched by this helper makes sure that
         # the automatic installation won't ever be performed for other users.
         system_helper_cmd = os.path.join(config.PKG_DATADIR, 'eos-google-chrome-system-helper.py')
         try:
-            subprocess.Popen(['pkexec', system_helper_cmd])
-        except OSError as e:
+            subprocess.check_call('pkexec {}'.format(system_helper_cmd), shell=True)
+        except subprocess.CalledProcessError as e:
             exit_with_error("Couldn't run {}: {}".format(system_helper_cmd, str(e)))
 
     def _post_install_chrome(self):
