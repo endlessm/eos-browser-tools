@@ -21,12 +21,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import argparse
+import config
 import logging
 import os
 import sys
-
-
-STAMP_FILE_INITIAL_SETUP_DONE = '/var/lib/eos-google-chrome-helper/initial-setup-done'
 
 
 def exit_with_error(*args):
@@ -71,8 +69,8 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
 
     if parsed_args.reset:
-        remove_stamp_file(STAMP_FILE_INITIAL_SETUP_DONE)
+        remove_stamp_file(config.STAMP_FILE_INITIAL_SETUP_DONE)
     else:
-        create_stamp_file(STAMP_FILE_INITIAL_SETUP_DONE)
+        create_stamp_file(config.STAMP_FILE_INITIAL_SETUP_DONE)
 
     sys.exit(0)

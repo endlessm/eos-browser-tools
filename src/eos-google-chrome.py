@@ -38,10 +38,6 @@ def exit_with_error(message):
 
 
 class GoogleChromeLauncher:
-
-    FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
-    FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
-
     def __init__(self, params):
         self._params = params
         try:
@@ -79,7 +75,7 @@ class GoogleChromeLauncher:
     def _get_chrome_flatpak_launcher(self):
         app = None
         try:
-            app = self._installation.get_current_installed_app(self.FLATPAK_CHROME_APP_ID, None)
+            app = self._installation.get_current_installed_app(config.FLATPAK_CHROME_APP_ID, None)
         except GLib.Error:
             logging.info("Chrome application is not installed")
             return None

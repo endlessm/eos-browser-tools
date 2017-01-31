@@ -22,3 +22,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 PKG_DATADIR = "@pkgdatadir@"
+
+FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
+FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
+
+CONFIG_FILE = '@sysconfdir@/@PACKAGE@/eos-google-chrome-helper.conf'
+STAMP_FILE_INITIAL_SETUP_DONE = '@localstatedir@/lib/@PACKAGE@/initial-setup-done'
+
+LEGACY_GSETTINGS_SCHEMA = 'com.endlessm.GoogleChromeInitialSetup'
+LEGACY_USER_CONFIG_STAMP_FILE = '~/.config/google-chrome-initial-setup-done'

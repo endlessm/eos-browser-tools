@@ -42,15 +42,6 @@ def exit_with_error(*args):
 
 
 class GoogleChromeInstaller:
-
-    CONFIG_FILE = '/etc/eos-google-chrome-helper/eos-google-chrome-helper.conf'
-    STAMP_FILE_INITIAL_SETUP_DONE = '/var/lib/eos-google-chrome-helper/initial-setup-done'
-
-    LEGACY_USER_CONFIG_STAMP_FILE = '~/.config/google-chrome-initial-setup-done'
-
-    FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
-    FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
-
     def __init__(self, initial_setup):
         self._initial_setup = initial_setup
 
@@ -80,48 +71,48 @@ class GoogleChromeInstaller:
         self._run_app_center_for_chrome()
 
     def _initial_setup_already_done(self):
-        if os.path.exists(self.STAMP_FILE_INITIAL_SETUP_DONE):
+        if os.path.exists(config.STAMP_FILE_INITIAL_SETUP_DONE):
             return True
 
-        legacy_stamp_file = os.path.expanduser(self.LEGACY_USER_CONFIG_STAMP_FILE)
+        legacy_stamp_file = os.path.expanduser(config.LEGACY_USER_CONFIG_STAMP_FILE)
         if os.path.exists(legacy_stamp_file):
-            # This is a legacy scenario, so we touch the system-wide file and
-            # remove the old one, so is not considered on the next log-in.
+            # This is a legacy scenario, so we touch the system-wide file to
+            # make sure next time that's the only thing that gets checked.
             self._touch_done_file()
             return True
 
         return False
 
     def _automatic_install_enabled(self):
-        if not os.path.exists(self.CONFIG_FILE):
+        if not os.path.exists(config.CONFIG_FILE):
             logging.warning("Could not find configuration file at {}"
-                            .format(self.CONFIG_FILE))
+                            .format(config.CONFIG_FILE))
             return False
 
         is_enabled = False
-        with open(self.CONFIG_FILE, 'r') as config_file:
+        with open(config.CONFIG_FILE, 'r') as config_file:
             helper_config = configparser.ConfigParser(allow_no_value=True)
             try:
                 helper_config.read_file(config_file)
                 logging.info("Read contents from configuration file at {}\n"
-                             .format(self.CONFIG_FILE))
+                             .format(config.CONFIG_FILE))
             except configparser.ParsingError as e:
                 logging.error("Error parsing contents from configuration file at {}: {}"
-                             .format(self.CONFIG_FILE, str(e)))
+                             .format(config.CONFIG_FILE, str(e)))
                 return False
 
             try:
                 is_enabled = helper_config.getboolean('Initial Setup', 'AutomaticInstallEnabled')
                 logging.info("AutomaticInstallEnabled = {}".format(str(is_enabled)))
             except configparser.NoOptionError:
-                logging.warning("AutomaticInstallEnabled key not found in {}".format(self.CONFIG_FILE))
+                logging.warning("AutomaticInstallEnabled key not found in {}".format(config.CONFIG_FILE))
                 return False
 
         return is_enabled
 
     def _check_chrome_flatpak_launcher(self):
         try:
-            self._installation.get_current_installed_app(self.FLATPAK_CHROME_APP_ID, None)
+            self._installation.get_current_installed_app(config.FLATPAK_CHROME_APP_ID, None)
         except GLib.Error as e:
             logging.info("Chrome application is not installed")
             return False
@@ -163,7 +154,7 @@ class GoogleChromeInstaller:
                 return
 
             if self._check_chrome_flatpak_launcher():
-                logging.info("{} has been installed".format(self.FLATPAK_CHROME_APP_ID))
+                logging.info("{} has been installed".format(config.FLATPAK_CHROME_APP_ID))
                 loop.quit()
 
         loop = GLib.MainLoop()
@@ -203,7 +194,7 @@ class GoogleChromeInstaller:
 
     def _run_app_center_for_chrome(self):
         # We use the APP ID as the one for GNOME Software, to let it choose the best one.
-        chrome_app_center_id = self.FLATPAK_CHROME_APP_ID
+        chrome_app_center_id = config.FLATPAK_CHROME_APP_ID
 
         # FIXME: Ideally, we should be able to pass 'com.google.Chrome' to GNOME Software
         # and it would do the right thing by opening the page for the app's branch matching
@@ -212,14 +203,14 @@ class GoogleChromeInstaller:
         # that GNOME Software expects, right from here, based on the remote's metadata.
         default_branch = None
         try:
-            remote = self._installation.get_remote_by_name(self.FLATPAK_REMOTE_EOS_APPS)
+            remote = self._installation.get_remote_by_name(config.FLATPAK_REMOTE_EOS_APPS)
         except GLib.Error as e:
-            logging.warning("Could not determine default branch for remote %s", self.FLATPAK_REMOTE_EOS_APPS)
+            logging.warning("Could not determine default branch for remote %s", config.FLATPAK_REMOTE_EOS_APPS)
 
         default_branch = remote.get_default_branch()
         if default_branch:
-            chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(self.FLATPAK_REMOTE_EOS_APPS,
-                                                                                    self.FLATPAK_CHROME_APP_ID,
+            chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(config.FLATPAK_REMOTE_EOS_APPS,
+                                                                                    config.FLATPAK_CHROME_APP_ID,
                                                                                     default_branch)
         if self._initial_setup:
             app_center_argv = ['gnome-software', '--install', chrome_app_center_id, '--interaction', 'none']

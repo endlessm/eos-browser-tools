@@ -13,6 +13,7 @@ pkgdata_DATA = \
 do_edit = sed \
 	-e "s|\@localstatedir\@|$(localstatedir)|" \
 	-e "s|\@pkgdatadir\@|$(pkgdatadir)|" \
+	-e "s|\@sysconfdir\@|$(sysconfdir)|" \
 	-e "s|\@PACKAGE\@|$(PACKAGE)|"
 
 eos-google-chrome: eos-google-chrome.in Makefile
