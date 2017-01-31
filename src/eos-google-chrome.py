@@ -2,7 +2,7 @@
 #
 # eos-google-chrome: helper script to install/launch Google Chrome
 #
-# Copyright (C) 2016 Endless Mobile, Inc.
+# Copyright (C) 2016, 2017 Endless Mobile, Inc.
 # Authors:
 #  Mario Sanchez Prada <mario@endlessm.com>
 #
@@ -25,7 +25,6 @@ import os
 import subprocess
 import sys
 
-sys.path.append("/usr/share/eos-google-chrome-helper")
 import config
 import gi
 gi.require_version('Flatpak', '1.0')
@@ -73,7 +72,7 @@ class GoogleChromeLauncher:
 
     def _install_chrome(self):
         try:
-            subprocess.Popen(['/{}/eos-google-chrome-installer'.format(config.pkglibexecdir)])
+            subprocess.Popen([os.path.join(config.PKG_DATADIR, 'eos-google-chrome-installer.py')])
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 

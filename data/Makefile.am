@@ -18,7 +18,7 @@ polkit_policydir = $(datadir)/polkit-1/actions
 polkit_policy_in_files = com.endlessm.GoogleChromeHelper.system-helper.policy.in
 polkit_policy_DATA = $(polkit_policy_in_files:.policy.in=.policy)
 
-do_edit = sed -e 's|@pkglibexecdir[@]|$(pkglibexecdir)|g'
+do_edit = sed -e "s|\@pkgdatadir\@|$(pkgdatadir)|"
 
 %.policy: %.policy.in Makefile
 	$(AM_V_GEN) $(do_edit) $<> $@

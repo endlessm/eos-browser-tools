@@ -191,7 +191,7 @@ class GoogleChromeInstaller:
     def _touch_done_file(self):
         # The system-wide stamp file touched by this helper makes sure that
         # the automatic installation won't ever be performed for other users.
-        system_helper_cmd = os.path.join(config.pkglibexecdir, 'eos-google-chrome-system-helper')
+        system_helper_cmd = os.path.join(config.PKG_DATADIR, 'eos-google-chrome-system-helper.py')
         try:
             subprocess.Popen(['pkexec', system_helper_cmd])
         except OSError as e:
