@@ -26,6 +26,8 @@ import logging
 import os
 import sys
 
+from systemd import journal
+
 
 def exit_with_error(*args):
     logging.error(*args)
@@ -59,6 +61,10 @@ def remove_stamp_file(filename):
 
 
 if __name__ == '__main__':
+    # Send logging messages both to the console and the journal
+    logging.basicConfig(level=logging.INFO)
+    logging.root.addHandler(journal.JournalHandler())
+
     parser = argparse.ArgumentParser(description="Marks Google Chrome installation as installed, system-wide")
 
     parser.add_argument('--debug', help="Show extra messages", action='store_true')
@@ -66,7 +72,7 @@ if __name__ == '__main__':
 
     parsed_args = parser.parse_args()
     if parsed_args.debug:
-        logging.basicConfig(level=logging.INFO)
+        logging.root.setLevel(logging.DEBUG)
 
     if parsed_args.reset:
         remove_stamp_file(config.STAMP_FILE_INITIAL_SETUP_DONE)

@@ -34,6 +34,7 @@ gi.require_version('Flatpak', '1.0')
 from gi.repository import Flatpak
 from gi.repository import Gio
 from gi.repository import GLib
+from systemd import journal
 
 
 def exit_with_error(*args):
@@ -248,9 +249,9 @@ class GoogleChromeInstaller:
 
 
 def main():
-    app_arch = Flatpak.get_default_arch()
-    if app_arch != 'x86_64':
-        exit_with_error("Found installation of unsupported architecture: %s", app_arch)
+    # Send logging messages both to the console and the journal
+    logging.basicConfig(level=logging.INFO)
+    logging.root.addHandler(journal.JournalHandler())
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', dest='debug', action='store_true')
@@ -259,7 +260,11 @@ def main():
     parsed_args = parser.parse_args()
 
     if parsed_args.debug:
-        logging.basicConfig(level=logging.INFO)
+        logging.root.setLevel(logging.DEBUG)
+
+    app_arch = Flatpak.get_default_arch()
+    if app_arch != 'x86_64':
+        exit_with_error("Found installation of unsupported architecture: %s", app_arch)
 
     GoogleChromeInstaller(parsed_args.initial_setup)
     sys.exit(0)

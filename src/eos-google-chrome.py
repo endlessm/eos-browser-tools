@@ -20,6 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import argparse
 import logging
 import os
 import subprocess
@@ -30,6 +31,7 @@ import gi
 gi.require_version('Flatpak', '1.0')
 from gi.repository import Flatpak
 from gi.repository import GLib
+from systemd import journal
 
 
 def exit_with_error(message):
@@ -93,14 +95,23 @@ class GoogleChromeLauncher:
 
 
 if __name__ == '__main__':
+    # Send logging messages both to the console and the journal
+    logging.basicConfig(level=logging.INFO)
+    logging.root.addHandler(journal.JournalHandler())
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', dest='debug', action='store_true')
+
+    parsed_args, otherargs = parser.parse_known_args()
+
+    if parsed_args.debug:
+        logging.root.setLevel(logging.DEBUG)
+
     # Google Chrome is only available for Intel 64-bit
     app_arch = Flatpak.get_default_arch()
     if app_arch != 'x86_64':
         exit_with_error("Found installation of unsupported architecture: {}".format(app_arch))
 
-    cmdline_args = sys.argv[1:]
-    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
-        logging.basicConfig(level=logging.INFO)
 
-    GoogleChromeLauncher(cmdline_args)
+    GoogleChromeLauncher(otherargs)
     sys.exit(0)
