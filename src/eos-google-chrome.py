@@ -2,7 +2,7 @@
 #
 # eos-google-chrome: helper script to install/launch Google Chrome
 #
-# Copyright (C) 2016 Endless Mobile, Inc.
+# Copyright (C) 2016, 2017 Endless Mobile, Inc.
 # Authors:
 #  Mario Sanchez Prada <mario@endlessm.com>
 #
@@ -20,17 +20,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import argparse
 import logging
 import os
 import subprocess
 import sys
 
-sys.path.append("/usr/share/eos-google-chrome-helper")
 import config
 import gi
 gi.require_version('Flatpak', '1.0')
 from gi.repository import Flatpak
 from gi.repository import GLib
+from systemd import journal
 
 
 def exit_with_error(message):
@@ -39,10 +40,6 @@ def exit_with_error(message):
 
 
 class GoogleChromeLauncher:
-
-    FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
-    FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
-
     def __init__(self, params):
         self._params = params
         try:
@@ -73,14 +70,14 @@ class GoogleChromeLauncher:
 
     def _install_chrome(self):
         try:
-            subprocess.Popen(['/{}/eos-google-chrome-installer'.format(config.pkglibexecdir)])
+            subprocess.Popen([os.path.join(config.PKG_DATADIR, 'eos-google-chrome-installer.py')])
         except OSError as e:
             exit_with_error("Could not launch Chrome: {}".format(repr(e)))
 
     def _get_chrome_flatpak_launcher(self):
         app = None
         try:
-            app = self._installation.get_current_installed_app(self.FLATPAK_CHROME_APP_ID, None)
+            app = self._installation.get_current_installed_app(config.FLATPAK_CHROME_APP_ID, None)
         except GLib.Error:
             logging.info("Chrome application is not installed")
             return None
@@ -98,14 +95,23 @@ class GoogleChromeLauncher:
 
 
 if __name__ == '__main__':
+    # Send logging messages both to the console and the journal
+    logging.basicConfig(level=logging.INFO)
+    logging.root.addHandler(journal.JournalHandler())
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', dest='debug', action='store_true')
+
+    parsed_args, otherargs = parser.parse_known_args()
+
+    if parsed_args.debug:
+        logging.root.setLevel(logging.DEBUG)
+
     # Google Chrome is only available for Intel 64-bit
     app_arch = Flatpak.get_default_arch()
     if app_arch != 'x86_64':
         exit_with_error("Found installation of unsupported architecture: {}".format(app_arch))
 
-    cmdline_args = sys.argv[1:]
-    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
-        logging.basicConfig(level=logging.INFO)
 
-    GoogleChromeLauncher(cmdline_args)
+    GoogleChromeLauncher(otherargs)
     sys.exit(0)

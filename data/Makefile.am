@@ -8,24 +8,34 @@ icon64dir = $(datadir)/icons/hicolor/64x64/apps
 icon64_DATA = eos-google-chrome.png
 
 autostartdir = $(sysconfdir)/xdg/autostart
-autostart_DATA = com.endlessm.GoogleChromeInitialSetup.desktop
+autostart_in_files = com.endlessm.GoogleChromeInitialSetup.desktop.in
+autostart_DATA = $(autostart_in_files:.desktop.in=.desktop)
 
-com.endlessm.GoogleChromeInitialSetup.desktop: com.endlessm.GoogleChromeInitialSetup.desktop.in Makefile
-	$(AM_V_GEN) sed -e "s|\@pkglibexecdir\@|$(pkglibexecdir)|" $<> $@
+configdir = $(sysconfdir)/$(PACKAGE)
+config_DATA = eos-google-chrome-helper.conf
 
-gsettings_SCHEMAS = com.endlessm.GoogleChromeInitialSetup.gschema.xml
+polkit_policydir = $(datadir)/polkit-1/actions
+polkit_policy_in_files = com.endlessm.GoogleChromeHelper.system-helper.policy.in
+polkit_policy_DATA = $(polkit_policy_in_files:.policy.in=.policy)
 
-@GSETTINGS_RULES@
+do_edit = sed -e "s|\@pkgdatadir\@|$(pkgdatadir)|"
+
+%.policy: %.policy.in Makefile
+	$(AM_V_GEN) $(do_edit) $<> $@
+
+%.desktop: %.desktop.in Makefile
+	$(AM_V_GEN) $(do_edit) $<> $@
 
 EXTRA_DIST = \
 	$(appdata_DATA) \
 	$(desktop_DATA) \
 	$(icon64_DATA) \
-	$(autostart_DATA) \
-	$(gsettings_SCHEMAS) \
-	com.endlessm.GoogleChromeInitialSetup.desktop.in \
+	$(autostart_in_files) \
+	$(polkit_policy_in_files) \
+	$(config_DATA) \
 	$(NULL)
 
 CLEANFILES = \
-	com.endlessm.GoogleChromeInitialSetup.desktop \
+	$(autostart_DATA) \
+	$(polkit_policy_DATA) \
 	$(NULL)

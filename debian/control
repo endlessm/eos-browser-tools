@@ -15,7 +15,8 @@ Depends: ${misc:Depends},
 	gir1.2-flatpak-1.0,
 	gir1.2-glib-2.0,
 	python3,
-	python3-gi
+	python3-gi,
+	python3-systemd
 Description: Google Chrome wrapper application
  Small package to contain the logic responsible of
  launching Google Chrome on Endless OS when installed,
