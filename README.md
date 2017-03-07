@@ -1,11 +1,32 @@
-# eos-google-chrome-helper
+# eos-browser-tools
 
-## Description
+# Description
+
+This package currently contains two main components
+
+  * eos-browser-tools: Endless-specific and browser-related tools
+  * eos-google-chrome-helper: Wrapper application to run Google Chrome
+
+## eos-browser-tools
+
+This currently provides a handler for webapp://<WM_CLASS>@<URI> URIs,
+which allows us to easily run chromium in application mode by
+specifying the desired WM_CLASS and final address to load in the URI.
+
+As this handler gets installed in the OS, it can handle URLs loaded
+from unsandboxed environments (e.g. Facebook, WhatsApp) as well as
+those from sandboxed flatpak applications, that rely on the Flatpak's
+OpenURI portal.
+
+If Google Chrome has been installed via the App Center (which requires
+having the eos-google-chrome-helper package installed), this script
+will consider using it instead of Chromium if it's set as the default
+browser, otherwise Chromium will be used.
+
+## eos-google-chrome-helper
 
 This package provides a system level wrapper application to allow easily
 downloading, installing and running Google Chrome on Endless OS.
-
-## Detailed description
 
 This wrapper application does mainly two things when you click on the desktop icon:
 
@@ -31,9 +52,9 @@ the browser or to install it if not yet available.
 
 ## License
 
-eos-google-chrome is Copyright (C) 2016 Endless Mobile, Inc. and
-is licensed under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
+eos-browser-tools is Copyright (C) 2016, 2017 Endless Mobile, Inc.
+and is licensed under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2 of
 the License, or (at your option) any later version.
 
 See the COPYING file for the full version of the GNU GPLv2 license
