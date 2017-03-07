@@ -1,0 +1,3 @@
+#!/bin/sh
+prefix=@prefix@
+exec @datadir@/@chromehelpername@/eos-google-chrome.py "$@"

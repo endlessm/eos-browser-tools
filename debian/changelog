@@ -1,3 +1,12 @@
+eos-browser-tools (1.0.1) eos; urgency=medium
+
+  * Renamed to eos-browser-tools, so that we can ship browser related
+    tools separately from the eos-google-chrome-helper package.
+
+  https://phabricator.endlessm.com/T15917
+
+ -- Mario Sanchez Prada <mario@endlessm.com>  Tue, 07 Mar 2017 11:42:24 +0000
+
 eos-google-chrome-helper (1.0.0) eos; urgency=medium
 
   * Initial release
