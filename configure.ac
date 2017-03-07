@@ -15,6 +15,7 @@ AC_SUBST(CHROME_HELPER_NAME, "eos-google-chrome-helper")
 AC_CONFIG_FILES([
 Makefile
 data/Makefile
+chrome-helper/Makefile
 src/Makefile
 ])
 AC_OUTPUT

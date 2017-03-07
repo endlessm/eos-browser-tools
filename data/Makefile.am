@@ -2,7 +2,10 @@ appdatadir = $(datadir)/appdata
 appdata_DATA = eos-google-chrome-helper.appdata.xml
 
 desktopdir = $(datadir)/applications
-desktop_DATA = google-chrome.desktop
+desktop_DATA = \
+	eos-browser-appmode.desktop \
+	google-chrome.desktop \
+	$(NULL)
 
 icon64dir = $(datadir)/icons/hicolor/64x64/apps
 icon64_DATA = eos-google-chrome.png
