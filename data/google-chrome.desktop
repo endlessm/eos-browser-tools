@@ -223,3 +223,4 @@ Name[zh_TW]=新增無痕式視窗
 Exec=/usr/bin/eos-google-chrome --incognito
 TargetEnvironment=Unity
 X-Endless-LaunchMaximized=true
+X-Endless-Replaced-By=com.google.Chrome.desktop
