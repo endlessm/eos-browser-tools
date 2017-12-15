@@ -9,9 +9,9 @@ This package currently contains two main components
 
 ## eos-browser-tools
 
-This currently provides a handler for webapp://<WM_CLASS>@<URI> URIs,
+This currently provides a handler for `webapp:<WM_CLASS>@<URI>` URIs,
 which allows us to easily run chromium in application mode by
-specifying the desired WM_CLASS and final address to load in the URI.
+specifying the desired `WM_CLASS` and final address to load in the URI.
 
 As this handler gets installed in the OS, it can handle URLs loaded
 from unsandboxed environments (e.g. Facebook, WhatsApp) as well as
