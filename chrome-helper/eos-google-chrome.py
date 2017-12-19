@@ -65,9 +65,6 @@ class GoogleChromeLauncher:
             except OSError as e:
                 exit_with_error("Could not launch Google Chrome: {}".format(repr(e)))
 
-            launcher_process.wait()
-            logging.info("Google Chrome launcher stopped")
-
     def _install_chrome(self):
         try:
             subprocess.Popen([os.path.join(config.PKG_DATADIR, 'eos-google-chrome-installer.py')])
