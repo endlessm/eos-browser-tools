@@ -8,6 +8,14 @@ Build-Depends: debhelper (>= 9),
 Standards-Version: 3.8.0
 Homepage: http://www.endlessm.com
 
+Package: eos-adblock-plus-extensions
+Architecture: all
+Depends: ${misc:Depends}
+Description: Adblock Plus extension definitions
+ This package provides the Adblock Plus extensions definitions, so that
+ they are installed automatically and kept up to date when the user opens
+ Chromium and Google Chrome.
+
 Package: eos-browser-tools
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
