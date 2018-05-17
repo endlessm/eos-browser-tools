@@ -101,6 +101,7 @@ if __name__ == '__main__':
                         '--start-maximized',
                         '--no-default-browser-check',
                         '--no-first-run',
+                        '--disable-extensions',
                         '--user-data-dir={}'.format(config_dir)])
    except ParsingError as e:
       print('Error parsing custom URI: {}'.format(e.value))
