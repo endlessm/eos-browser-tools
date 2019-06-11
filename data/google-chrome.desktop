@@ -113,6 +113,7 @@ Categories=Network;WebBrowser;
 MimeType=text/html;text/xml;application/xhtml_xml;image/webp;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;
 X-Ayatana-Desktop-Shortcuts=NewWindow;NewIncognito
 X-Endless-LaunchMaximized=true
+X-Parental-Controls=wrapper
 
 [NewWindow Shortcut Group]
 Name=New Window
