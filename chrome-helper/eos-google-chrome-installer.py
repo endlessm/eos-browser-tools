@@ -219,9 +219,9 @@ class GoogleChromeInstaller:
         # Get the default branch now to construct the full unique ID GNOME Software expects.
         default_branch = remote.get_default_branch()
         if default_branch:
-            chrome_app_center_id = 'system/flatpak/{}/desktop/{}.desktop/{}'.format(config.FLATPAK_REMOTE_EOS_APPS,
-                                                                                    config.FLATPAK_CHROME_APP_ID,
-                                                                                    default_branch)
+            chrome_app_center_id = 'system/flatpak/{}/desktop/{}/{}'.format(config.FLATPAK_REMOTE_EOS_APPS,
+                                                                            config.FLATPAK_CHROME_APP_ID,
+                                                                            default_branch)
         return chrome_app_center_id
 
     def _run_app_center_for_chrome(self):
