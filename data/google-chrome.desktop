@@ -114,6 +114,7 @@ MimeType=text/html;text/xml;application/xhtml_xml;image/webp;x-scheme-handler/ht
 X-Ayatana-Desktop-Shortcuts=NewWindow;NewIncognito
 X-Endless-LaunchMaximized=true
 X-Parental-Controls=wrapper
+X-Flatpak=com.google.Chrome
 
 [NewWindow Shortcut Group]
 Name=New Window
