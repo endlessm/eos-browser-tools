@@ -4,7 +4,7 @@ ABSOLUTE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_
 
 if ! malcontent-client --quiet check-app-filter --no-interactive ${ABSOLUTE_PATH} ||
    ! malcontent-client --quiet check-app-filter --no-interactive "x-scheme-handler/http"; then
-  echo "error: $ABSOLUTE_PATH is blacklisted for the current user" >&2
+  echo "error: $ABSOLUTE_PATH is blocked for the current user" >&2
   exit 1
 fi
 
