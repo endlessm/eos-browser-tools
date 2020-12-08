@@ -10,18 +10,7 @@ This package currently contains two main components
 ## eos-browser-tools
 
 This currently provides a handler for `webapp:<WM_CLASS>@<URI>` URIs,
-which allows us to easily run chromium in application mode by
-specifying the desired `WM_CLASS` and final address to load in the URI.
-
-As this handler gets installed in the OS, it can handle URLs loaded
-from unsandboxed environments (e.g. Facebook, WhatsApp) as well as
-those from sandboxed flatpak applications, that rely on the Flatpak's
-OpenURI portal.
-
-If Google Chrome has been installed via the App Center (which requires
-having the eos-google-chrome-helper package installed), this script
-will consider using it instead of Chromium if it's set as the default
-browser, otherwise Chromium will be used.
+which is currently deprecated but kept for compability purposes.
 
 ## eos-google-chrome-helper
 
