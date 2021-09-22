@@ -110,13 +110,12 @@ Terminal=false
 Icon=eos-google-chrome
 Type=Application
 Categories=Network;WebBrowser;
-MimeType=text/html;text/xml;application/xhtml_xml;image/webp;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;
-X-Ayatana-Desktop-Shortcuts=NewWindow;NewIncognito
-X-Endless-LaunchMaximized=true
+MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;
+Actions=new-window;new-private-window;
 X-Parental-Controls=wrapper
 X-Flatpak=com.google.Chrome
 
-[NewWindow Shortcut Group]
+[Desktop Action new-window]
 Name=New Window
 Name[am]=አዲስ መስኮት
 Name[ar]=نافذة جديدة
@@ -169,10 +168,8 @@ Name[vi]=Cửa sổ Mới
 Name[zh_CN]=新建窗口
 Name[zh_TW]=開新視窗
 Exec=/usr/bin/eos-google-chrome
-TargetEnvironment=Unity
-X-Endless-LaunchMaximized=true
 
-[NewIncognito Shortcut Group]
+[Desktop Action new-private-window]
 Name=New Incognito Window
 Name[ar]=نافذة جديدة للتصفح المتخفي
 Name[bg]=Нов прозорец „инкогнито“
@@ -223,5 +220,3 @@ Name[vi]=Cửa sổ ẩn danh mới
 Name[zh_CN]=新建隐身窗口
 Name[zh_TW]=新增無痕式視窗
 Exec=/usr/bin/eos-google-chrome --incognito
-TargetEnvironment=Unity
-X-Endless-LaunchMaximized=true
