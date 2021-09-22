@@ -1,7 +1,5 @@
-/etc
 /usr/bin/eos-google-chrome
 /usr/share/appdata
 /usr/share/applications/google-chrome.desktop
 /usr/share/eos-google-chrome-helper
 /usr/share/icons
-/usr/share/polkit-1

@@ -26,8 +26,4 @@ PKG_DATADIR = "@datadir@/@chromehelpername@"
 FLATPAK_CHROME_APP_ID = 'com.google.Chrome'
 FLATPAK_REMOTE_EOS_APPS = 'eos-apps'
 
-CONFIG_FILE = '@sysconfdir@/@chromehelpername@/eos-google-chrome-helper.conf'
-STAMP_FILE_INITIAL_SETUP_DONE = '@localstatedir@/lib/@chromehelpername@/initial-setup-done'
-
-LEGACY_GSETTINGS_SCHEMA = 'com.endlessm.GoogleChromeInitialSetup'
 LEGACY_USER_CONFIG_STAMP_FILE = '~/.config/google-chrome-initial-setup-done'
