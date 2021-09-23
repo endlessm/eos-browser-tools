@@ -55,6 +55,8 @@ def remove_stamp_file(filename):
     try:
         os.unlink(filename)
         logging.info("Stamp file removed from {}".format(filename))
+    except FileNotFoundError:
+        pass
     except OSError as e:
         exit_with_error("Error removing stamp file at {}: {}"
                         .format(filename, str(e)))
