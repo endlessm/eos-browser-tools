@@ -42,6 +42,15 @@ def exit_with_error(message):
 class GoogleChromeLauncher:
     def __init__(self, params):
         self._params = params
+
+        # Remove the old initial-setup stamp file; the system stamp file is
+        # removed in a tmpfiles snippet
+        legacy_stamp_file = os.path.expanduser(config.LEGACY_USER_CONFIG_STAMP_FILE)
+        try:
+            os.unlink(legacy_stamp_file)
+        except FileNotFoundError:
+            pass
+
         try:
             self._installation = Flatpak.Installation.new_system()
         except GLib.Error as e:

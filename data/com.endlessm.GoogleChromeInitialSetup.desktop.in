@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Google Chrome Initial Setup
-Exec=@datadir@/@chromehelpername@/eos-google-chrome-installer.py --initial-setup
-Type=Application
-NoDisplay=true
-X-GNOME-Autostart-enabled=true
-AutostartCondition=unless-exists @localstatedir@/lib/@chromehelpername@/initial-setup-done

@@ -5,7 +5,6 @@ chromehelperdir = $(datadir)/$(CHROME_HELPER_NAME)
 dist_chromehelper_SCRIPTS = \
 	eos-google-chrome.py \
 	eos-google-chrome-installer.py \
-	eos-google-chrome-system-helper.py \
 	$(NULL)
 
 chromehelper_DATA = \

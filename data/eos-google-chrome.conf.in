@@ -1,0 +1,2 @@
+# remove stamp file from eos-google-chrome-system-helper from EOS <4
+r @localstatedir@/lib/@chromehelpername@/initial-setup-done
