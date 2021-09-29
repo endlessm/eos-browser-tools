@@ -1,3 +1,4 @@
+/lib/tmpfiles.d/eos-google-chrome.conf
 /usr/bin/eos-google-chrome
 /usr/share/appdata
 /usr/share/applications/google-chrome.desktop
