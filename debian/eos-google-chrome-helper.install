@@ -1,5 +1,5 @@
-/lib/tmpfiles.d/eos-google-chrome.conf
 /usr/bin/eos-google-chrome
+/usr/lib/tmpfiles.d/eos-google-chrome.conf
 /usr/share/appdata
 /usr/share/applications/google-chrome.desktop
 /usr/share/eos-google-chrome-helper
