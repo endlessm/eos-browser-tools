@@ -105,6 +105,14 @@ Comment[vi]=Truy cập Internet
 Comment[zh_CN]=访问互联网
 Comment[zh_HK]=連線到網際網路
 Comment[zh_TW]=連線到網際網路
+# Hide this desktop file if the Endless-provided Chrome flatpak is not installed.
+# This removes the feature (available in EOS <4.0) which always shows the Chrome
+# icon, and installs Chrome on demand if it’s clicked. Now, the icon will only
+# be shown if the Endless Chrome flatpak is installed. If the upstream (flathub)
+# flatpak is installed, this icon will not be shown — that flatpak provides its
+# own desktop file.
+# See https://phabricator.endlessm.com/T32409
+TryExec=/var/lib/flatpak/app/com.google.Chrome/current/active/files/bin/eos-google-chrome-app
 Exec=/usr/bin/eos-google-chrome %U
 Terminal=false
 Icon=eos-google-chrome
