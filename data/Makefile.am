@@ -8,7 +8,13 @@ desktop_DATA = \
 	$(NULL)
 
 icon64dir = $(datadir)/icons/hicolor/64x64/apps
-icon64_DATA = eos-google-chrome.png
+dist_icon64_DATA = icons/hicolor/64x64/eos-google-chrome.png
+
+icon128dir = $(datadir)/icons/hicolor/128x128/apps
+dist_icon128_DATA = icons/hicolor/128x128/eos-google-chrome.png
+
+icon256dir = $(datadir)/icons/hicolor/256x256/apps
+dist_icon256_DATA = icons/hicolor/256x256/eos-google-chrome.png
 
 tmpfilesdir = $(prefix)/lib/tmpfiles.d
 tmpfiles_in = eos-google-chrome.conf.in
@@ -28,7 +34,6 @@ do_edit = sed \
 EXTRA_DIST = \
 	$(appdata_DATA) \
 	$(desktop_DATA) \
-	$(icon64_DATA) \
 	$(tmpfiles_in) \
 	$(NULL)
 
