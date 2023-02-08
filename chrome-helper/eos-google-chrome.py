@@ -107,6 +107,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', dest='debug', action='store_true')
+    parser.add_argument('--enable-features', dest='enable_features', default='WebRTCPipeWireCapturer')
     parser.add_argument('--ozone-platform', dest='ozone_platform')
     parser.add_argument('--ozone-platform-hint', dest='ozone_platform_hint', default='auto')
 
@@ -114,6 +115,13 @@ if __name__ == '__main__':
 
     if parsed_args.debug:
         logging.root.setLevel(logging.DEBUG)
+
+    if parsed_args.enable_features:
+        features = parsed_args.enable_features.split(',')
+        if 'WebRTCPipeWireCapturer' not in features:
+            features.append('WebRTCPipeWireCapturer')
+        features = ','.join(features)
+        otherargs.append(f'--enable-features={features}')
 
     if parsed_args.ozone_platform:
         otherargs.append(f'--ozone-platform={parsed_args.ozone_platform}')
