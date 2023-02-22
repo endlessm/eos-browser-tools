@@ -108,8 +108,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--enable-features', dest='enable_features', default='WebRTCPipeWireCapturer')
-    parser.add_argument('--ozone-platform', dest='ozone_platform')
-    parser.add_argument('--ozone-platform-hint', dest='ozone_platform_hint', default='auto')
 
     parsed_args, otherargs = parser.parse_known_args()
 
@@ -122,11 +120,6 @@ if __name__ == '__main__':
             features.append('WebRTCPipeWireCapturer')
         features = ','.join(features)
         otherargs.append(f'--enable-features={features}')
-
-    if parsed_args.ozone_platform:
-        otherargs.append(f'--ozone-platform={parsed_args.ozone_platform}')
-    elif parsed_args.ozone_platform_hint:
-        otherargs.append(f'--ozone-platform-hint={parsed_args.ozone_platform_hint}')
 
     # Google Chrome is only available for Intel 64-bit
     app_arch = Flatpak.get_default_arch()
