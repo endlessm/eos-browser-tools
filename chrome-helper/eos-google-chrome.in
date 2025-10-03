@@ -8,4 +8,10 @@ if ! malcontent-client --quiet check-app-filter --no-interactive ${ABSOLUTE_PATH
   exit 1
 fi
 
-exec @datadir@/@chromehelpername@/eos-google-chrome.py "$@"
+if [ "$(/usr/bin/flatpak info -o com.google.Chrome//stable)" == "flathub" ]; then
+  chrome_cmd="/usr/bin/flatpak run com.google.Chrome//stable"
+else
+  chrome_cmd="/usr/share/eos-google-chrome-helper/eos-google-chrome.py"
+fi
+
+exec $chrome_cmd "$@"
